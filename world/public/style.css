@@ -1,0 +1,56 @@
+body {
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #f0f0f0;
+}
+
+#game-container {
+  display: flex;
+  gap: 20px;
+}
+
+#game-canvas {
+  border: 1px solid black;
+  background-color: #fff;
+}
+
+#info-panel {
+  width: 200px;
+  border: 1px solid #ccc;
+  padding: 10px;
+  background-color: #fafafa;
+}
+
+#toast-container {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.toast {
+  padding: 15px;
+  border-radius: 5px;
+  color: white;
+  font-weight: bold;
+  opacity: 0.9;
+  transition: opacity 0.5s ease-out;
+}
+
+.toast.green {
+  background-color: #28a745;
+}
+
+.toast.yellow {
+  background-color: #ffc107;
+  color: #212529;
+}
+
+.toast.red {
+  background-color: #dc3545;
+}

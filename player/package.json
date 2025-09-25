@@ -1,0 +1,13 @@
+{
+  "name": "player-client",
+  "version": "1.0.0",
+  "description": "WebSocket client for the MakeUC workshop",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "solution": "node solution.js"
+  },
+  "dependencies": {
+    "ws": "^8.13.0"
+  }
+}

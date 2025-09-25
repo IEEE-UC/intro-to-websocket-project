@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WebSocket Workshop - World</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div id="toast-container"></div>
+    <h1>WebSocket Workshop</h1>
+    <div id="server-info">
+      <p>
+        <strong>Player Connection URL:</strong>
+        <a id="server-url">Detecting...</a>
+      </p>
+    </div>
+    <div id="game-container">
+      <canvas id="game-canvas" width="800" height="600"></canvas>
+      <div id="info-panel">
+        <h2>Leaderboard</h2>
+        <ul id="leaderboard"></ul>
+        <h2>Speed Limit</h2>
+        <p id="speed-limit">10</p>
+      </div>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>

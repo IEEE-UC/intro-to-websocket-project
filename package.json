@@ -1,0 +1,11 @@
+{
+  "name": "intro-to-websocket-project",
+  "version": "1.0.0",
+  "description": "Learn how to handle asynchronous communication via websockets",
+  "scripts": {
+    "player": "cd player && npm start",
+    "start:world": "cd world && docker-compose up --build"
+  },
+  "author": "Jasmine Mogadam",
+  "license": "MIT"
+}
