@@ -3,6 +3,9 @@ services:
     build: .
     ports:
       - "3000:3000"
+    networks:
+      - shared-network
+
   nginx:
     image: nginx:alpine
     volumes:
@@ -11,3 +14,9 @@ services:
       - "80:80"
     depends_on:
       - app
+    networks:
+      - shared-network
+
+networks:
+  shared-network:
+    driver: bridge

@@ -5,7 +5,7 @@ const speedLimitDisplay = document.getElementById("speed-limit");
 const serverUrlElement = document.getElementById("server-url");
 const toastContainer = document.getElementById("toast-container");
 
-const ws = new WebSocket(`ws://${window.location.host}`);
+const ws = new WebSocket(`wss://wsws.rshare.io`);
 
 // --- Local Game State ---
 let localGameState = {
@@ -27,7 +27,7 @@ ws.onmessage = (event) => {
 
   switch (data.type) {
     case "serverInfo":
-      const playerUrl = `ws://${window.location.host}`;
+      const playerUrl = `wss://wsws.rshare.io`;
       serverUrlElement.href = playerUrl;
       serverUrlElement.textContent = playerUrl;
       break;

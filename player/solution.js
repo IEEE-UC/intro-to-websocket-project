@@ -1,7 +1,7 @@
 import WebSocket from "ws";
 import { parseMessage } from "./parser.js";
 
-const SERVER_ADDRESS = "ws://localhost:80";
+const SERVER_ADDRESS = "wss://wsws.rshare.io";
 
 const ws = new WebSocket(SERVER_ADDRESS);
 

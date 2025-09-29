@@ -25,6 +25,7 @@ const MAX_COINS = 35;
 const START_SPEED = 10;
 const MIN_SPEED = 5;
 const MAX_SPEED = 20;
+const TICK_SPEED = 120; // game state updates a second
 
 // Game state
 let players = {}; // key: secret, value: player object
@@ -210,7 +211,7 @@ function getLocalIp() {
 // Start game loops
 setInterval(spawnCoin, 5000);
 setInterval(updateSpeedLimit, 20000);
-setInterval(broadcastGameState, 1000 / 60); // Broadcast state 60 times a second
+setInterval(broadcastGameState, 1000 / TICK_SPEED); // Broadcast state 60 times a second
 
 // Start the server
 const PORT = process.env.PORT || 3000;

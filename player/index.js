@@ -4,7 +4,7 @@ import { parseMessage } from "./parser.js";
 // Make sure you have run 'npm install' in the 'player' directory!
 
 // TODO: Replace with the actual server address
-const SERVER_ADDRESS = "ws://localhost:80";
+const SERVER_ADDRESS = "wss://wsws.rshare.io";
 
 const ws = new WebSocket(SERVER_ADDRESS);
 
