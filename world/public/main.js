@@ -7,6 +7,12 @@ const toastContainer = document.getElementById("toast-container");
 
 const ws = new WebSocket(`ws://${window.location.host}`);
 
+// --- Local Game State ---
+let localGameState = {
+  players: [],
+  coins: [],
+};
+
 ws.onopen = () => {
   console.log("Connected to the WebSocket server");
 };
@@ -19,40 +25,40 @@ ws.onerror = (error) => {
 ws.onmessage = (event) => {
   const data = JSON.parse(event.data);
 
-  if (data.type === "serverInfo") {
-    serverUrlElement.href = data.url;
-    serverUrlElement.textContent = data.url;
-    return;
+  switch (data.type) {
+    case "serverInfo":
+      const playerUrl = `ws://${window.location.host}`;
+      serverUrlElement.href = playerUrl;
+      serverUrlElement.textContent = playerUrl;
+      break;
+
+    case "notification":
+      showToast(data.message, data.color);
+      break;
+
+    case "gameState":
+      localGameState.players = data.players;
+      localGameState.coins = data.coins; // Full sync
+      updateLeaderboard(data.leaderboard);
+      speedLimitDisplay.textContent = data.speedLimit;
+      break;
+
+    case "coinCollected":
+      // Remove the specific coin more quickly than waiting for a full gameState sync
+      localGameState.coins = localGameState.coins.filter(
+        (c) => c.id !== data.coinId
+      );
+      break;
   }
-
-  if (data.type === "notification") {
-    showToast(data.message, data.color);
-    return;
-  }
-
-  if (data.type !== "gameState") return;
-
-  const gameState = data;
-
-  // Update leaderboard
-  updateLeaderboard(gameState.leaderboard);
-
-  // Update speed limit
-  speedLimitDisplay.textContent = gameState.speedLimit;
-
-  // Clear canvas and redraw
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawPlayers(gameState.players);
-  drawCoins(gameState.coins);
 };
 
 function updateLeaderboard(board) {
   leaderboard.innerHTML = "";
-  for (const player in board) {
+  board.forEach((player) => {
     const li = document.createElement("li");
-    li.textContent = `${player}: ${board[player]}`;
+    li.textContent = `${player.name}: ${player.score}`;
     leaderboard.appendChild(li);
-  }
+  });
 }
 
 function drawPlayers(players) {
@@ -89,3 +95,14 @@ function showToast(message, color = "green") {
     setTimeout(() => toast.remove(), 500);
   }, 3000);
 }
+
+// --- Render Loop ---
+function render() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawPlayers(localGameState.players);
+  drawCoins(localGameState.coins);
+  requestAnimationFrame(render);
+}
+
+// Start the render loop
+render();

@@ -9,6 +9,15 @@ const app = express();
 const server = http.createServer(app);
 const wss = new WebSocket.Server({ server });
 
+// Middleware to log all incoming requests for debugging
+app.use((req, res, next) => {
+  console.log(`Incoming request: ${req.method} ${req.path}`);
+  next();
+});
+
+// Serve static files from the 'public' directory
+app.use(express.static(path.join(__dirname, "public")));
+
 // Game Constants
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
@@ -61,9 +70,8 @@ wss.on("connection", (ws) => {
 
   let playerSecret = null; // Will be set on 'create' message
 
-  // Send the server URL to the newly connected client
-  const serverUrl = `ws://${getLocalIp()}:80`;
-  ws.send(JSON.stringify({ type: "serverInfo", url: serverUrl }));
+  // Signal the client to construct its own URL
+  ws.send(JSON.stringify({ type: "serverInfo" }));
 
   // Handle messages from clients
   ws.on("message", (message) => {
@@ -122,6 +130,7 @@ wss.on("connection", (ws) => {
                 // 15px collision radius
                 player.score++;
                 delete coins[id];
+                broadcast({ type: "coinCollected", coinId: id });
                 broadcast({
                   type: "notification",
                   message: `${player.name} collected a coin!`,
@@ -167,6 +176,11 @@ function spawnCoin() {
     x: Math.random() * GAME_WIDTH,
     y: Math.random() * GAME_HEIGHT,
   };
+  broadcast({
+    type: "notification",
+    message: "A new coin has spawned!",
+    color: "yellow",
+  });
 }
 
 function updateSpeedLimit() {
@@ -199,9 +213,16 @@ setInterval(broadcastGameState, 1000 / 30); // Broadcast state 30 times a second
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
   console.log(`Server is listening on port ${PORT}`);
-  const playerUrl = `ws://${getLocalIp()}:80`;
+  const localIp = getLocalIp(); // This is the container's IP, useful for debugging.
   console.log(`================================================`);
-  console.log(`Visualizer: http://${getLocalIp()}:80`);
-  console.log(`Player WebSocket URL: ${playerUrl}`);
+  console.log(`Visualizer URL: http://localhost:80`);
+  console.log(`------------------------------------------------`);
+  console.log(`INSTRUCTIONS FOR PARTICIPANTS:`);
+  console.log(`1. Find your computer's Local IP Address.`);
+  console.log(`   - On macOS, go to System Settings > Wi-Fi > Details.`);
+  console.log(`   - On Windows, open Command Prompt and type 'ipconfig'.`);
+  console.log(`2. Your Player WebSocket URL is: ws://<YOUR_IP_ADDRESS>:80`);
+  console.log(`   (Replace <YOUR_IP_ADDRESS> with the IP you found).`);
   console.log(`================================================`);
+  console.log(`(Container IP is: ${localIp})`);
 });

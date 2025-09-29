@@ -4,7 +4,7 @@
   "description": "Learn how to handle asynchronous communication via websockets",
   "scripts": {
     "player": "cd player && npm start",
-    "start:world": "cd world && docker-compose up --build"
+    "world": "cd world && docker-compose up --build"
   },
   "author": "Jasmine Mogadam",
   "license": "MIT"
