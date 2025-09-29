@@ -21,12 +21,15 @@ app.use(express.static(path.join(__dirname, "public")));
 // Game Constants
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
-const MAX_COINS = 10;
+const MAX_COINS = 35;
+const START_SPEED = 10;
+const MIN_SPEED = 5;
+const MAX_SPEED = 20;
 
 // Game state
 let players = {}; // key: secret, value: player object
 let coins = {}; // key: id, value: coin object
-let speedLimit = 10;
+let speedLimit = START_SPEED;
 
 // Helper to broadcast to all clients
 function broadcast(data) {
@@ -184,7 +187,7 @@ function spawnCoin() {
 }
 
 function updateSpeedLimit() {
-  speedLimit = Math.floor(Math.random() * 10) + 5; // Speed limit between 5 and 14
+  speedLimit = Math.floor(Math.random() * (MAX_SPEED - MIN_SPEED)) + MIN_SPEED; // Speed limit between 5 and 14
   broadcast({
     type: "notification",
     message: `New speed limit: ${speedLimit}`,
@@ -207,7 +210,7 @@ function getLocalIp() {
 // Start game loops
 setInterval(spawnCoin, 5000);
 setInterval(updateSpeedLimit, 20000);
-setInterval(broadcastGameState, 1000 / 30); // Broadcast state 30 times a second
+setInterval(broadcastGameState, 1000 / 60); // Broadcast state 60 times a second
 
 // Start the server
 const PORT = process.env.PORT || 3000;

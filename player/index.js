@@ -1,4 +1,7 @@
-const WebSocket = require("ws");
+import WebSocket from "ws";
+import { parseMessage } from "./parser.js";
+
+// Make sure you have run 'npm install' in the 'player' directory!
 
 // TODO: Replace with the actual server address
 const SERVER_ADDRESS = "ws://localhost:80";
@@ -19,7 +22,9 @@ ws.on("open", () => {
 });
 
 ws.on("message", (message) => {
-  const data = JSON.parse(message);
+  const data = parseMessage(message);
+  if (!data) return;
+
   console.log("Received:", data);
 
   // TODO: Handle messages from the server

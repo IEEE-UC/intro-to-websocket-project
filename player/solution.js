@@ -1,4 +1,5 @@
-const WebSocket = require("ws");
+import WebSocket from "ws";
+import { parseMessage } from "./parser.js";
 
 const SERVER_ADDRESS = "ws://localhost:80";
 
@@ -21,14 +22,16 @@ ws.on("open", () => {
 });
 
 ws.on("message", (message) => {
-  const data = JSON.parse(message);
+  const data = parseMessage(message);
+  if (!data) return;
 
   if (data.type === "gameState") {
     coins = data.coins;
     speedLimit = data.speedLimit;
-    if (data.players[myMeeple.name]) {
-      myMeeple.x = data.players[myMeeple.name].x;
-      myMeeple.y = data.players[myMeeple.name].y;
+    const myPlayerData = data.players.find((p) => p.name === myMeeple.name);
+    if (myPlayerData) {
+      myMeeple.x = myPlayerData.x;
+      myMeeple.y = myPlayerData.y;
     }
   }
 });

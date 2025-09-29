@@ -3,7 +3,7 @@
  * @param {string} message The raw message string from the server.
  * @returns {object | null} A parsed object, or null if parsing fails.
  */
-function parseMessage(message) {
+export function parseMessage(message) {
   try {
     return JSON.parse(message);
   } catch (error) {
@@ -11,5 +11,3 @@ function parseMessage(message) {
     return null;
   }
 }
-
-module.exports = { parseMessage };
