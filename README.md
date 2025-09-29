@@ -15,6 +15,7 @@ npm - https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
 ### Setup / How to Run
 
 Clone the repository:
+
 ```
 git clone https://github.com/IEEE-UC/intro-to-websocket-project.git
 ```
@@ -25,7 +26,6 @@ Install the ws library:
 npm run setup
 ```
 
-
 To run your code run:
 
 ```
@@ -34,7 +34,16 @@ npm run player
 
 You'll be running that command each time you make changes to your code!
 
+The only file you'll be changing during this project is [/player/index.js](/player/index.js)
+
 Customize your player by changing the name and color of your meeple.
+
+```const meeple = {
+    name: "MyMeeple",
+    color: "blue",
+    secret: "my-secret-key",
+  };
+```
 
 ### YOU MUST CHANGE YOUR SECRET
 
