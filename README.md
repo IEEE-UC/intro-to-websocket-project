@@ -8,18 +8,22 @@ This is most likely you! Here's what you need to learn all about websockets
 
 ### Prerequisites
 
+git - https://git-scm.com/book/en/v2/Getting-Started-Installing-Git
 npm - https://docs.npmjs.com/downloading-and-installing-node-js-and-npm
-Docker Desktop - https://www.docker.com/products/docker-desktop/
 
 ### Setup / How to Run
 
-Before doing anything, run this to install the ws library:
+Clone the repository:
+```
+git clone https://github.com/IEEE-UC/intro-to-websocket-project.git
+```
+
+Install the ws library:
 
 ```
 npm run setup
 ```
 
-You won't need to run this again unless you delete /node_modules
 
 To run your code run:
 
@@ -27,7 +31,9 @@ To run your code run:
 npm run player
 ```
 
-Customize your player bby changing the name and color of your meeple.
+You'll be running that command each time you make changes to your code!
+
+Customize your player by changing the name and color of your meeple.
 
 ### YOU MUST CHANGE YOUR SECRET
 
