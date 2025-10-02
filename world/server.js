@@ -22,10 +22,10 @@ app.use(express.static(path.join(__dirname, "public")));
 const GAME_WIDTH = 800;
 const GAME_HEIGHT = 600;
 const MAX_COINS = 35;
-const START_SPEED = 10;
-const MIN_SPEED = 5;
-const MAX_SPEED = 20;
-const TICK_SPEED = 120; // game state updates a second
+const START_SPEED = 25;
+const MIN_SPEED = 25;
+const MAX_SPEED = 85;
+const TICK_SPEED = 60; // game state updates a second
 
 // Game state
 let players = {}; // key: secret, value: player object
@@ -99,6 +99,8 @@ wss.on("connection", (ws) => {
               score: 0,
               connected: true,
               overSpeed: false,
+              angle: 0,
+              velocity: 0,
             };
           }
           ws.playerSecret = playerSecret; // Associate secret with this connection
@@ -112,36 +114,8 @@ wss.on("connection", (ws) => {
         case "move":
           const player = players[ws.playerSecret];
           if (player && player.connected) {
-            const velocity = Math.min(data.velocity, 20); // Cap velocity
-            player.overSpeed = velocity > speedLimit;
-
-            if (!player.overSpeed) {
-              player.x += Math.cos(data.angle) * velocity;
-              player.y += Math.sin(data.angle) * velocity;
-
-              // Boundary checks
-              player.x = Math.max(0, Math.min(GAME_WIDTH, player.x));
-              player.y = Math.max(0, Math.min(GAME_HEIGHT, player.y));
-            }
-
-            // Coin collision check
-            for (const id in coins) {
-              const coin = coins[id];
-              const distance = Math.sqrt(
-                Math.pow(player.x - coin.x, 2) + Math.pow(player.y - coin.y, 2)
-              );
-              if (distance < 15) {
-                // 15px collision radius
-                player.score++;
-                delete coins[id];
-                broadcast({ type: "coinCollected", coinId: id });
-                broadcast({
-                  type: "notification",
-                  message: `${player.name} collected a coin!`,
-                  color: "yellow",
-                });
-              }
-            }
+            player.angle = data.angle;
+            player.velocity = Math.min(data.velocity, 20); // Cap velocity
           }
           break;
 
@@ -169,6 +143,43 @@ wss.on("connection", (ws) => {
     }
   });
 });
+
+function updatePlayers() {
+  const activePlayers = Object.values(players).filter((p) => p.connected);
+
+  for (const player of activePlayers) {
+    player.overSpeed = player.velocity > speedLimit;
+
+    if (!player.overSpeed) {
+      const speed = (player.velocity / 20) * speedLimit * 0.5;
+      player.x += Math.cos(player.angle) * speed;
+      player.y += Math.sin(player.angle) * speed;
+
+      // Boundary checks
+      player.x = Math.max(0, Math.min(GAME_WIDTH, player.x));
+      player.y = Math.max(0, Math.min(GAME_HEIGHT, player.y));
+    }
+
+    // Coin collision check
+    for (const id in coins) {
+      const coin = coins[id];
+      const distance = Math.sqrt(
+        Math.pow(player.x - coin.x, 2) + Math.pow(player.y - coin.y, 2)
+      );
+      if (distance < 15) {
+        // 15px collision radius
+        player.score++;
+        delete coins[id];
+        broadcast({ type: "coinCollected", coinId: id });
+        broadcast({
+          type: "notification",
+          message: `${player.name} collected a coin!`,
+          color: "yellow",
+        });
+      }
+    }
+  }
+}
 
 // --- Game Logic Intervals ---
 
@@ -212,6 +223,7 @@ function getLocalIp() {
 setInterval(spawnCoin, 5000);
 setInterval(updateSpeedLimit, 20000);
 setInterval(broadcastGameState, 1000 / TICK_SPEED); // Broadcast state 60 times a second
+setInterval(updatePlayers, 1000 / TICK_SPEED);
 
 // Start the server
 const PORT = process.env.PORT || 3000;

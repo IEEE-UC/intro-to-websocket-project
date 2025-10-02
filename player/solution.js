@@ -9,6 +9,9 @@ let myMeeple = null;
 let coins = [];
 let speedLimit = 10;
 
+// There are several issues with this bot!
+// Find them and fix them :D
+
 ws.on("open", () => {
   console.log("Connected to the server!");
 

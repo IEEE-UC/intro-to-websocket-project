@@ -217,6 +217,7 @@ input:checked + .slider:before {
 }
 .toast {
   padding: 15px 25px;
+  margin: 5px;
   border-radius: 8px;
   color: white;
   font-weight: bold;
