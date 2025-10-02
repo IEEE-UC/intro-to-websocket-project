@@ -26,11 +26,18 @@ const START_SPEED = 25;
 const MIN_SPEED = 25;
 const MAX_SPEED = 85;
 const TICK_SPEED = 60; // game state updates a second
+const MIN_OBSTACLES = 5;
+const MAX_OBSTACLES = 12;
+const MIN_OBST_SIZE = 10;
+const MAX_OBST_SIZE = 150;
 
 // Game state
 let players = {}; // key: secret, value: player object
 let coins = {}; // key: id, value: coin object
 let speedLimit = START_SPEED;
+let hardMode = false;
+let obstacles = [];
+let winners = [];
 
 // Helper to broadcast to all clients
 function broadcast(data) {
@@ -57,6 +64,8 @@ function broadcastGameState() {
     coins: Object.values(coins),
     leaderboard: getLeaderboard(),
     speedLimit: speedLimit,
+    obstacles: obstacles,
+    winners: winners,
   });
 }
 
@@ -124,6 +133,12 @@ wss.on("connection", (ws) => {
             JSON.stringify({ type: "pastCoins", coins: Object.values(coins) })
           );
           break;
+        case "reset":
+          resetGame();
+          break;
+        case "toggleHardMode":
+          toggleHardMode();
+          break;
       }
     } catch (e) {
       console.error("Failed to handle message:", e);
@@ -158,6 +173,22 @@ function updatePlayers() {
       // Boundary checks
       player.x = Math.max(0, Math.min(GAME_WIDTH, player.x));
       player.y = Math.max(0, Math.min(GAME_HEIGHT, player.y));
+
+      // Obstacle collision check
+      if (hardMode) {
+        for (const obstacle of obstacles) {
+          if (isInside(player, obstacle.points)) {
+            // Simple collision response: push the player out
+            const distX = player.x - obstacle.centerX;
+            const distY = player.y - obstacle.centerY;
+            const dist = Math.sqrt(distX * distX + distY * distY);
+            player.x =
+              obstacle.centerX + (distX / dist) * (obstacle.radius + 1);
+            player.y =
+              obstacle.centerY + (distY / dist) * (obstacle.radius + 1);
+          }
+        }
+      }
     }
 
     // Coin collision check
@@ -186,11 +217,22 @@ function updatePlayers() {
 function spawnCoin() {
   if (Object.keys(coins).length >= MAX_COINS) return;
   const id = uuidv4();
-  coins[id] = {
-    id,
-    x: Math.random() * GAME_WIDTH,
-    y: Math.random() * GAME_HEIGHT,
-  };
+  let x, y;
+  let validPosition = false;
+  while (!validPosition) {
+    x = Math.random() * GAME_WIDTH;
+    y = Math.random() * GAME_HEIGHT;
+    validPosition = true;
+    if (hardMode) {
+      for (const obstacle of obstacles) {
+        if (isInside({ x, y }, obstacle.points)) {
+          validPosition = false;
+          break;
+        }
+      }
+    }
+  }
+  coins[id] = { id, x, y };
   broadcast({
     type: "notification",
     message: "A new coin has spawned!",
@@ -217,6 +259,82 @@ function getLocalIp() {
     }
   }
   return "0.0.0.0";
+}
+
+function resetGame() {
+  const leaderboard = getLeaderboard();
+  if (leaderboard.length > 0) {
+    winners.push(leaderboard[0]);
+  }
+  players = {};
+  coins = {};
+  obstacles = [];
+  hardMode = false; // Ensure hard mode is turned off
+  broadcast({
+    type: "notification",
+    message: "The game has been reset!",
+    color: "blue",
+  });
+}
+
+function toggleHardMode() {
+  hardMode = !hardMode;
+  if (hardMode) {
+    coins = {}; // Clear coins when enabling hard mode
+    generateObstacles();
+    broadcast({
+      type: "notification",
+      message: "Hard mode enabled!",
+      color: "red",
+    });
+  } else {
+    obstacles = [];
+    broadcast({
+      type: "notification",
+      message: "Hard mode disabled!",
+      color: "blue",
+    });
+  }
+}
+
+function generateObstacles() {
+  obstacles = [];
+  const numObstacles =
+    Math.floor(Math.random() * (MAX_OBSTACLES - MIN_OBSTACLES)) + MIN_OBSTACLES;
+  for (let i = 0; i < numObstacles; i++) {
+    const radius =
+      Math.random() * (MAX_OBST_SIZE - MIN_OBST_SIZE) + MIN_OBST_SIZE;
+    const centerX = Math.random() * (GAME_WIDTH - radius * 2) + radius;
+    const centerY = Math.random() * (GAME_HEIGHT - radius * 2) + radius;
+    const points = [];
+    const numPoints = Math.floor(Math.random() * 5) + 3; // 3-7 points
+    for (let j = 0; j < numPoints; j++) {
+      const angle = (j / numPoints) * Math.PI * 2;
+      points.push({
+        x: centerX + Math.cos(angle) * radius,
+        y: centerY + Math.sin(angle) * radius,
+      });
+    }
+    obstacles.push({ points, centerX, centerY, radius });
+  }
+}
+
+function isInside(point, vs) {
+  // ray-casting algorithm based on
+  // http://www.ecse.rpi.edu/Homepages/wrf/Research/Short_Notes/pnpoly.html
+  var x = point.x,
+    y = point.y;
+  var inside = false;
+  for (var i = 0, j = vs.length - 1; i < vs.length; j = i++) {
+    var xi = vs[i].x,
+      yi = vs[i].y;
+    var xj = vs[j].x,
+      yj = vs[j].y;
+    var intersect =
+      yi > y != yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
+    if (intersect) inside = !inside;
+  }
+  return inside;
 }
 
 // Start game loops

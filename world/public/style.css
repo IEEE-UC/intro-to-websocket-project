@@ -214,6 +214,7 @@ input:checked + .slider:before {
   top: 0;
   right: 0;
   width: 25%;
+  z-index: 999;
 }
 .toast {
   padding: 15px 25px;
@@ -238,6 +239,10 @@ input:checked + .slider:before {
 
 .toast.red {
   background-color: #dc3545;
+}
+
+.toast.blue {
+  background-color: #007bff;
 }
 
 /* Animations */

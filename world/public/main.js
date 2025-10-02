@@ -4,6 +4,9 @@ const leaderboard = document.getElementById("leaderboard");
 const speedLimitDisplay = document.getElementById("speed-limit");
 const serverUrlElement = document.getElementById("server-url");
 const toastContainer = document.getElementById("toast-container");
+const resetButton = document.getElementById("reset-button");
+const hardModeToggle = document.getElementById("hard-mode-toggle");
+const pastLeaderboardsContainer = document.getElementById("past-leaderboards");
 
 const ws = new WebSocket(`wss://wsws.rshare.io`);
 
@@ -11,6 +14,7 @@ const ws = new WebSocket(`wss://wsws.rshare.io`);
 let localGameState = {
   players: [],
   coins: [],
+  obstacles: [],
 };
 
 ws.onopen = () => {
@@ -39,8 +43,11 @@ ws.onmessage = (event) => {
     case "gameState":
       localGameState.players = data.players;
       localGameState.coins = data.coins; // Full sync
+      localGameState.obstacles = data.obstacles || [];
       updateLeaderboard(data.leaderboard);
+      updatePastLeaderboards(data.winners);
       speedLimitDisplay.textContent = data.speedLimit;
+      setHardModeToggle(data.hardMode);
       break;
 
     case "coinCollected":
@@ -84,6 +91,19 @@ function drawCoins(coins) {
   });
 }
 
+function drawObstacles(obstacles) {
+  obstacles.forEach((obstacle) => {
+    ctx.fillStyle = "grey";
+    ctx.beginPath();
+    ctx.moveTo(obstacle.points[0].x, obstacle.points[0].y);
+    for (let i = 1; i < obstacle.points.length; i++) {
+      ctx.lineTo(obstacle.points[i].x, obstacle.points[i].y);
+    }
+    ctx.closePath();
+    ctx.fill();
+  });
+}
+
 function showToast(message, color = "green") {
   const toast = document.createElement("div");
   toast.className = `toast ${color}`;
@@ -101,7 +121,35 @@ function render() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
   drawPlayers(localGameState.players);
   drawCoins(localGameState.coins);
+  drawObstacles(localGameState.obstacles);
   requestAnimationFrame(render);
+}
+
+resetButton.addEventListener("click", () => {
+  ws.send(JSON.stringify({ type: "reset" }));
+});
+
+hardModeToggle.addEventListener("change", (event) => {
+  ws.send(JSON.stringify({ type: "toggleHardMode" }));
+});
+
+function setHardModeToggle(isHardMode) {
+  hardModeToggle.checked = isHardMode;
+}
+
+function updatePastLeaderboards(winners) {
+  pastLeaderboardsContainer.innerHTML = "";
+  winners.forEach((winner, index) => {
+    const board = document.createElement("div");
+    board.className = "past-leaderboard";
+    const title = document.createElement("h3");
+    title.textContent = `Round ${index + 1} Winner`;
+    board.appendChild(title);
+    const winnerP = document.createElement("p");
+    winnerP.textContent = `${winner.name}: ${winner.score}`;
+    board.appendChild(winnerP);
+    pastLeaderboardsContainer.appendChild(board);
+  });
 }
 
 // Start the render loop
